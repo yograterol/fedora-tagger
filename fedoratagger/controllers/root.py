@@ -78,7 +78,7 @@ class RootController(BaseController):
 
         json = dict(tag=label, package=package)
 
-        query = model.TagLabel.query.filter_by(label=label)
+        query = model.TagLabel.query.filter_by(label_insensitive=label)
         if query.count() == 0:
             model.DBSession.add(model.TagLabel(label=label))
 

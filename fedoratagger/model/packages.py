@@ -7,8 +7,13 @@ from sqlalchemy import *
 from sqlalchemy import Table, ForeignKey, Column
 from sqlalchemy.types import Integer, Unicode
 from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.ext.hybrid import Comparator, hybrid_property
 
 from fedoratagger.model import DeclarativeBase, metadata, DBSession
+
+class CaseInsensitiveComparator(Comparator):
+    def __eq__(self, other):
+        return func.lower(self.__clause_element__()) == func.lower(other)
 
 try:
     from hashlib import md5
@@ -108,6 +113,14 @@ class TagLabel(DeclarativeBase):
     id = Column(Integer, primary_key=True)
     label = Column(Unicode(255), nullable=False)
     tags = relation('Tag', backref=('label'))
+
+    @hybrid_property
+    def label_insensitive(self):
+        return self.label.lower()
+
+    @label_insensitive.comparator
+    def label_insensitive(cls):
+        return CaseInsensitiveComparator(cls.label)
 
     def __unicode__(self):
         return self.label
